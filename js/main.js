@@ -175,12 +175,238 @@ var Game = Backbone.Model.extend(
 
 
 var Piece = Backbone.Model.extend({
-	defaults:
+	defaults:function()
+	{
+		return{
+			location:"NULL",
+			type:"NULL",
+			rules:[],
+			king: false,
+			direction:1
+		}
+	},
 	initialize:function(options)
 	{
 		this.sandbox = options.sandbox;
+		this.set("direction", options.direction || 1);
 	}
-})
+});
+
+
+var Position = function(X, Y)
+{
+	this.x = X;
+	this.y = Y;
+}
+
+var Rule = function(options)
+{
+	this.configure(options);
+}
+
+_.extend(Rule.prototype, {
+	configure:function(options)
+	{
+		this.condition = {
+			
+			destinationRequirement:"Any",//"Empty", "Opponent", "Any", may use lists
+			maxMoves:Infinity, //How many moves maximum can the piece have taken?
+			legalLocations:["*"] //Where is this legal to move from?
+			//+01 indicates an addition of one space from the starting point in the y dimension
+		};
+		this.iterations = Infinity || options.iterations;//How many iterations?
+		this.deltas = [];//Changes in direction
+ 		this.transform = false || options.transform;//Do you get to transform this piece at the end?
+
+		_.extend(this.condition, _.pick(options, "destinationRequirement","maxMoves","legalLocations"));
+
+		if (options.deltas)
+		{
+			for (var i = 0, ii = options.deltas.length; i < ii; i ++)
+			{
+				this.deltas.push(options.deltas[i]);
+			}
+		}
+	},
+
+	//Is this rule able to be played given the start and end locations?
+	legal:function(start, end)
+	{
+
+	},
+
+	//Execute the rule.
+	execute:function(start, end)
+	{
+
+	},
+
+	//Return an expanded list of locations
+	locations:function()
+	{
+
+	}
+});
+
+
+var Pawn = Piece.extend(
+{
+	initialize:function(options)
+	{
+		Piece.prototype.initialize.apply(this, arguments);
+
+		var rules = this.get("rules");
+
+		//Move two at the start
+		rules.push(new Rule({
+			destinationRequirement:"Empty",
+			maxMoves:0,
+			iterations: 1,
+			legalLocations:["*"],
+			deltas:[new Position(0, 2)]
+		}));
+		//Move forward at any time.
+		rules.push(new Rule({
+			destinationRequirement:"Empty",
+			iterations: 1,
+			legalLocations:["*"],
+			deltas:[new Position(0, 1)]
+		}));
+		//Captures.
+		rules.push(new Rule({
+			destinationRequirement:"Opponent",
+			iterations: 1,
+			legalLocations:["*"],
+			deltas:[new Position(1, 1), new Position(-1, 1)]
+		}));
+
+		//Transformation at the end.
+		rules.push(new Rule({
+			destinationRequirement:"Empty",
+			iterations: 1,
+			transform:true,
+			legalLocations:["-*0"],
+			deltas:[new Position(0, 1)]
+		}));
+		rules.push(new Rule({
+			destinationRequirement:"Opponent",
+			iterations: 1,
+			transform:true,
+			legalLocations:["-*0"],
+			deltas:[new Position(1, 1), new Position(-1, 1)]
+		}));
+	}
+});
+
+var Bishop = Piece.extend(
+{
+	initialize:function()
+	{
+		Piece.prototype.initialize.apply(this, arguments);
+
+		var rules = this.get("rules");
+
+		//Diagonals
+		rules.push(new Rule({
+			destinationRequirement:"Empty, Opponent",
+			deltas:[new Position(1, 1), 
+					new Position(-1, 1), 
+					new Position(-1, -1), 
+					new Position(1, -1)]
+		}));
+	}
+});
+
+var Rook = Piece.extend(
+{
+	initialize:function()
+	{
+		Piece.prototype.initialize.apply(this, arguments);
+
+		var rules = this.get("rules");
+
+		//Vertical & Horizontal
+		rules.push(new Rule({
+			destinationRequirement:"Empty, Opponent",
+			deltas:[new Position(0, 1), 
+					new Position(0, -1), 
+					new Position(-1, 0), 
+					new Position(1, 0)]
+		}));
+	}
+});
+
+var Queen = Piece.extend(
+{
+	initialize:function()
+	{
+		Piece.prototype.initialize.apply(this, arguments);
+
+		var rules = this.get("rules");
+
+		//Vertical & Horizontal
+		rules.push(new Rule({
+			destinationRequirement:"Empty, Opponent",
+			deltas:[new Position(0, 1), 
+					new Position(0, -1), 
+					new Position(-1, 0), 
+					new Position(1, 0),
+					new Position(1, 1), 
+					new Position(-1, 1), 
+					new Position(-1, -1), 
+					new Position(1, -1)]
+		}));
+	}
+});
+
+var King = Piece.extend(
+{
+	initialize:function()
+	{
+		Piece.prototype.initialize.apply(this, arguments);
+
+		var rules = this.get("rules");
+
+		//Vertical & Horizontal
+		rules.push(new Rule({
+			destinationRequirement:"Empty, Opponent",
+			iterations:1,
+			deltas:[new Position(0, 1), 
+					new Position(0, -1), 
+					new Position(-1, 0), 
+					new Position(1, 0),
+					new Position(1, 1), 
+					new Position(-1, 1), 
+					new Position(-1, -1), 
+					new Position(1, -1)]
+		}));
+	}
+});
+
+var Knight = Piece.extend(
+{
+	initialize:function()
+	{
+		Piece.prototype.initialize.apply(this, arguments);
+
+		var rules = this.get("rules");
+
+		//Vertical & Horizontal
+		rules.push(new Rule({
+			destinationRequirement:"Empty, Opponent",
+			iterations:1,
+			deltas:[new Position(1, 2), 
+					new Position(-1, 2), 
+					new Position(1, -2), 
+					new Position(-1, -2), 
+					new Position(2, 1), 
+					new Position(-2, 1),
+					new Position(2, -1), 
+					new Position(-2, -1)]
+		}));
+	}
+});
+
 
 
 var GameBox = SandboxApp.Sandbox.extend(
