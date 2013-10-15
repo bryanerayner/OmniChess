@@ -217,6 +217,8 @@ _.extend(Rule.prototype, {
 		this.iterations = Infinity || options.iterations;//How many iterations?
 		this.deltas = [];//Changes in direction
  		this.transform = false || options.transform;//Do you get to transform this piece at the end?
+ 		this.direction = options.direction || 1;
+
 
 		_.extend(this.condition, _.pick(options, "destinationRequirement","maxMoves","legalLocations"));
 
@@ -245,9 +247,46 @@ _.extend(Rule.prototype, {
 	locations:function()
 	{
 
+	},
+
+	makePosition:function()
+	{
+
 	}
 });
 
+
+var MetaRule = function(options)
+{
+	this.configure(options);
+}
+_.extend(MetaRule.prototype, _.extend({}, Rule.prototype, {
+	configure:function(options)
+	{
+		this.condition = {
+			
+			destinationRequirement:"Any",//"Empty", "Opponent", "Any", may use lists
+			maxMoves:Infinity, //How many moves maximum can the piece have taken?
+			legalLocations:["*"] //Where is this legal to move from?
+			//+01 indicates an addition of one space from the starting point in the y dimension
+		};
+		this.iterations = Infinity || options.iterations;//How many iterations?
+		this.deltas = [];//Changes in direction
+ 		this.transform = false || options.transform;//Do you get to transform this piece at the end?
+ 		this.direction = options.direction || 1;
+
+
+		_.extend(this.condition, _.pick(options, "destinationRequirement","maxMoves","legalLocations"));
+
+		if (options.deltas)
+		{
+			for (var i = 0, ii = options.deltas.length; i < ii; i ++)
+			{
+				this.deltas.push(options.deltas[i]);
+			}
+		}
+	}
+}));
 
 var Pawn = Piece.extend(
 {
@@ -256,9 +295,10 @@ var Pawn = Piece.extend(
 		Piece.prototype.initialize.apply(this, arguments);
 
 		var rules = this.get("rules");
-
+		var direction = this.get("direction");
 		//Move two at the start
 		rules.push(new Rule({
+			direction:direction,
 			destinationRequirement:"Empty",
 			maxMoves:0,
 			iterations: 1,
@@ -267,6 +307,7 @@ var Pawn = Piece.extend(
 		}));
 		//Move forward at any time.
 		rules.push(new Rule({
+			direction:direction,
 			destinationRequirement:"Empty",
 			iterations: 1,
 			legalLocations:["*"],
@@ -274,6 +315,7 @@ var Pawn = Piece.extend(
 		}));
 		//Captures.
 		rules.push(new Rule({
+			direction:direction,
 			destinationRequirement:"Opponent",
 			iterations: 1,
 			legalLocations:["*"],
@@ -282,6 +324,7 @@ var Pawn = Piece.extend(
 
 		//Transformation at the end.
 		rules.push(new Rule({
+			direction:direction,
 			destinationRequirement:"Empty",
 			iterations: 1,
 			transform:true,
@@ -289,6 +332,7 @@ var Pawn = Piece.extend(
 			deltas:[new Position(0, 1)]
 		}));
 		rules.push(new Rule({
+			direction:direction,
 			destinationRequirement:"Opponent",
 			iterations: 1,
 			transform:true,
@@ -344,7 +388,7 @@ var Queen = Piece.extend(
 
 		var rules = this.get("rules");
 
-		//Vertical & Horizontal
+		//All Directions
 		rules.push(new Rule({
 			destinationRequirement:"Empty, Opponent",
 			deltas:[new Position(0, 1), 
@@ -367,7 +411,19 @@ var King = Piece.extend(
 
 		var rules = this.get("rules");
 
-		//Vertical & Horizontal
+		//All Directions
+		rules.push(new Rule({
+			destinationRequirement:"Empty, Opponent",
+			iterations:1,
+			deltas:[new Position(0, 1), 
+					new Position(0, -1), 
+					new Position(-1, 0), 
+					new Position(1, 0),
+					new Position(1, 1), 
+					new Position(-1, 1), 
+					new Position(-1, -1), 
+					new Position(1, -1)]
+		}));
 		rules.push(new Rule({
 			destinationRequirement:"Empty, Opponent",
 			iterations:1,
