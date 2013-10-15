@@ -1,0 +1,63 @@
+<!doctype html>
+ <html>
+     <head>
+         <meta charset="utf-8">
+         <meta name="description" content="">
+         <meta name="viewport" content="width=device-width, initial-scale=1">
+         <title>Chess</title>
+         <link rel="stylesheet" href="css/style.css">
+         <link rel="author" href="humans.txt">
+     </head>
+     <body>
+         
+		<div class="main">
+
+			<div id = "board1">
+				
+
+			</div>
+
+
+
+		</div>
+
+
+
+
+		<script id = "template_board" type = "text/x-handlebars-template">
+			{{#each ranks}}				
+				<div class = "file">
+					
+					{{#each files}}
+						<div class = "Subview_{{file}}{{rank}}"></div>
+					{{/each}}
+					<div class = "rankLabel">{{rankName}}</div>
+					
+				</div>
+			{{/each}}
+			{{#each ranks}}
+				<div class = "fileLabel">{{fileName}}</div>				
+				</div>
+			{{/each}}
+		</script>
+
+		<script id = "template_square" type = "text/x-handlebars-template">
+			<div class = "square" data-rank="{{rank}}" data-file="{{file}}">
+			</div>
+		</script>
+
+		<script id = "template_piece" type = "text/x-handlebars-template">
+			<div class = "piece {{color}} {{name}}">
+				<p>{{color}} {{name}}</p>
+			</div>
+		</script>
+
+         
+         <script src="libs/jquery-1.10.2.min.js"></script>         
+         <script src="libs/underscore.js"></script>
+         <script src="libs/backbone.js"></script>
+         <script src="libs/handlebars.js"></script>         
+         <script src="libs/sandboxApp.js"></script>
+         <script src="js/main.js"></script>
+     </body>
+ </html> 

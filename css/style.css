@@ -1,0 +1,55 @@
+*, *:before, *:after
+{
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.file
+{
+	float:left;
+}
+
+.file .square
+{
+	float:left;
+	width:60px;
+	height:60px;
+	background-color:inherit;
+}
+
+
+.file [class*="Subview"] > div
+{
+background-color:inherit;
+}
+
+.file:nth-child(odd) [class*="Subview"]:nth-child(odd)
+{
+background-color:#666;
+}
+
+.file:nth-child(odd) [class*="Subview"]:nth-child(even)
+{
+background-color:#ccc;
+}
+
+.file:nth-child(even) [class*="Subview"]:nth-child(odd)
+{
+background-color:#ccc;
+}
+
+.file:nth-child(even) [class*="Subview"]:nth-child(even)
+{
+background-color:#666;
+}
+
+.rankLabel
+{
+	width: 60px;
+	text-align: center;
+}
+.fileLabel{
+height: 60px;
+padding-top:30px;
+}
