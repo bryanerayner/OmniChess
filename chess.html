@@ -25,18 +25,18 @@
 
 
 		<script id = "template_board" type = "text/x-handlebars-template">
-			{{#each ranks}}				
+			{{#each files}}				
 				<div class = "file">
 					
-					{{#each files}}
+					{{#each ranks}}
 						<div class = "Subview_{{file}}{{rank}}"></div>
 					{{/each}}
-					<div class = "rankLabel">{{rankName}}</div>
+					<div class = "fileLabel">{{fileName}}</div>
 					
 				</div>
 			{{/each}}
-			{{#each ranks}}
-				<div class = "fileLabel">{{fileName}}</div>				
+			{{#each files}}
+				<div class = "rankLabel">{{rankName}}</div>				
 				</div>
 			{{/each}}
 		</script>

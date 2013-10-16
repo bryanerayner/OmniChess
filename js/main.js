@@ -55,6 +55,7 @@ var Square_View = SandboxApp.NestedView.extend({
 
 })
 
+var regx_Alpha = /[\w]/;
 var alpha = ["_","A","B","C","D","E","F","G","H"];
 
 function numToAlpha(num)
@@ -66,36 +67,92 @@ function alphaToNum(letter)
 	return _.indexOf(alpha, letter);
 }
 
+function vectorToCoord(x, y)
+{
+	var _x = x;
+	var _y = y;
+	if (_.isObject(x))
+	{
+		_x = x.x;
+		_y = x.y;
+	}
+	_x = numToAlpha(_x);
+	return _x+_y;
+}
+
+
+function coordToVector(coord)
+{
+	var ret = {x:0,y:0};
+	var x = 0;
+	var y = 0;
+	if (_.isString(coord))
+	{
+		if (regx_Alpha.test(coord.charAt(0)))
+		{
+			x = alphaToNum(coord.charAt(0));
+		}
+		y = coord.charAt(1);
+	}
+	ret.x = x;
+	ret.y = y;
+	return ret;
+}
+
 
 var Board = Backbone.Collection.extend({
 	initialize:function(options){
 		this.rankCount = options.rankCount;
 		this.fileCount = options.fileCount;
+	},
 
-		
+	//Return the piece that is at this location
+	lookUp:function(reference, options)
+	{
+		if (options.string == true)
+		{
+			return "stuff"
+		}
+
+		return "piece";
 	},
 
 	reset:function(){
 		Backbone.Collection.prototype.reset.call(this);
 
-		for (var r = 0, rr = this.rankCount; r < rr; r++) {
-			for (var f = 0, ff = this.fileCount; f < ff; f++) {
-				this.add(new Square({rank:r+1, file:numToAlpha(f+1)}));
+		for (var f = 0, ff = this.fileCount; f < ff; f++) {
+			for (var r = 0, rr = this.rankCount; r < rr; r++) {
+				this.add(new Square({file:numToAlpha(f+1), rank:r+1}));
 			};			
 		};
 		
 	},
 
-	references:function()
+	references:function(options)
 	{
-		var ret = [];
-		for (var r = 0, rr = this.rankCount; r < rr; r++) {
+		if (!options || !options.array)
+		{
+			var ret = [];
 			for (var f = 0, ff = this.fileCount; f < ff; f++) {
-				var rank= r+1;
-				ret.push(numToAlpha(f+1)+rank);
-			};			
-		};
-		return ret;
+				for (var r = 0, rr = this.rankCount; r < rr; r++) {
+					var rank= r+1;
+					ret.push(numToAlpha(f+1)+rank);
+				};			
+			};
+			return ret;
+		}else if (options.array == true)
+		{
+			var ret = [];
+			for (var f = 0, ff = this.fileCount; f < ff; f++) {
+				var retty = [];
+				for (var r = 0, rr = this.rankCount; r < rr; r++) {
+					var rank= r+1;
+					retty.push(numToAlpha(f+1)+rank);
+				};
+				ret.push(retty);
+			};
+			return ret;
+		}
 	},
 	ranks:function()
 	{
@@ -135,42 +192,159 @@ var Board_View = SandboxApp.NestedView.extend({
 
 	renderData:function()
 	{
-		var ranks = this.collection.ranks();
-		ranks = _.map(ranks, function(rank){
-			var files = this.collection.files();
-			var newFiles = [];
-			_.each(files, function(file){
-				newFiles.push({
+		var files = this.collection.files();
+		files = _.map(files, function(file){
+			var ranks = this.collection.ranks();
+			var newRanks = [];
+			_.each(ranks, function(rank){
+				newRanks.push({
 					rank:rank,
 					file:file
 				});
 			});
 			return {
-				"fileName":newFiles[rank-1].file,
-				"rankName":rank,
-				"files":newFiles
+				"rankName":newRanks[alphaToNum(file)-1].rank,
+				"fileName":file,
+				"ranks":newRanks
 			};
 		},this);
-		return {"ranks":ranks};
+		return {"files":files};
 	}
 });
 
 
 
-var Game = Backbone.Model.extend(
+var Game = Backbone.Collection.extend(
 {
 	initialize:function(options)
 	{
 		this.sandbox = options.sandbox;
-
+		this.board = null;
 		this.listenTo(this.sandbox, "request:click", this.requestClick);
+	},
+
+	setupGame:function()
+	{
+		this.sandbox.trigger("killPieces");
+
+		delete this.pieces;
+		this.pieces = [];
+		var t = this;
+
+		function addPiece(piece)
+		{
+			t.pieces.push(piece);
+		}
+		var side = "white";
+		var dir = -1;
+		var pawnLocations = ["A7","B7","C7","D7","E7","F7","G7","H7"];
+		var bishopLocations = ["C8","F8"];
+		var knightLocations = ["B8","G8"];
+		var rookLocations = ["A8","H8"];
+		var queenLocations = ["E8"];
+		var kingLocations = ["D8"];
+
+		function setupSide()
+		{
+			_.each(pawnLocations, function(location){
+				addPiece(new Pawn({
+					location:location,
+					team:side,
+					direction:dir
+				}));
+			});
+			_.each(bishopLocations, function(location){
+				addPiece(new Bishop({
+					location:location,
+					team:side,
+					direction:dir
+				}));
+			});
+			_.each(knightLocations, function(location){
+				addPiece(new Knight({
+					location:location,
+					team:side,
+					direction:dir
+				}));
+			});
+			_.each(rookLocations, function(location){
+				addPiece(new Rook({
+					location:location,
+					team:side,
+					direction:dir
+				}));
+			});
+			_.each(queenLocations, function(location){
+				addPiece(new Queen({
+					location:location,
+					team:side,
+					direction:dir
+				}));
+			});
+			_.each(kingLocations, function(location){
+				addPiece(new King({
+					location:location,
+					team:side,
+					direction:dir
+				}));
+			});
+		}
+
+		setupSide();
+		side = "black";
+		dir = 1;
+		pawnLocations = ["A2","B2","C2","D2","E2","F2","G2","H2"];
+		bishopLocations = ["C1","F1"];
+		knightLocations = ["B1","G1"];
+		rookLocations = ["A1","H1"];
+		queenLocations = ["E1"];
+		kingLocations = ["D1"];
+
+		setupSide();	
+
+		this.trigger("setupGame");
+	},
+
+	giveBoard:function(newBoard)
+	{
+		this.board = newBoard;
 	},
 
 	requestClick:function(reference)
 	{
 		alert(reference);
 	}
-})
+});
+
+var Game_View = SandboxApp.NestedView.extend({
+	initialize:function(options)
+	{
+		SandboxApp.NestedView.prototype.initialize.apply(this, arguments);
+		this.boardView = options.boardView;
+
+		
+		this.listenTo(this.collection, "setupGame", this.render);
+	},
+
+	render:function(){
+		SandboxApp.NestedView.prototype.render.apply(this, arguments);
+
+		var pieces = this.collection.pieces;
+
+		_.each(pieces, function(piece){
+			var pieceView = new Piece_View(
+			{
+				model:piece,
+				sandbox:this.sandbox,
+				parentView:this.boardView
+			});
+			pieceView.render();
+			pieceView.locationUpdate();
+		}, this);
+	}
+
+
+});
 
 
 
@@ -179,9 +353,10 @@ var Piece = Backbone.Model.extend({
 	{
 		return{
 			location:"NULL",
-			type:"NULL",
+			team:"NULL",
 			rules:[],
-			king: false,
+			numMoves:0,
+			pieceName: "NULL",
 			direction:1
 		}
 	},
@@ -192,6 +367,22 @@ var Piece = Backbone.Model.extend({
 	}
 });
 
+var Piece_View = SandboxApp.NestedView.extend({
+
+	initialize:function(options)
+	{
+		SandboxApp.NestedView.prototype.initialize.apply(this, arguments);
+		this.template = "template_piece";
+
+		this.listenTo(this.model, "change:location", this.locationUpdate);
+	},
+
+	locationUpdate:function()
+	{
+		var location = this.model.get("location");
+		this.$el.appendTo(this.parentView.$(".Subview_"+location).find(".square"));
+	}
+});
 
 var Position = function(X, Y)
 {
@@ -209,7 +400,7 @@ _.extend(Rule.prototype, {
 	{
 		this.condition = {
 			
-			destinationRequirement:"Any",//"Empty", "Opponent", "Any", may use lists
+			destinationRequirement:"Any",//"Empty", "Opponent", "Friend", "Any", "#{PieceName}" may use lists
 			maxMoves:Infinity, //How many moves maximum can the piece have taken?
 			legalLocations:["*"] //Where is this legal to move from?
 			//+01 indicates an addition of one space from the starting point in the y dimension
@@ -222,6 +413,9 @@ _.extend(Rule.prototype, {
 
 		_.extend(this.condition, _.pick(options, "destinationRequirement","maxMoves","legalLocations"));
 
+
+
+		this.condition.destinationRequirement = this.condition.destinationRequirement.split(/[,\s]+/);
 		if (options.deltas)
 		{
 			for (var i = 0, ii = options.deltas.length; i < ii; i ++)
@@ -229,30 +423,197 @@ _.extend(Rule.prototype, {
 				this.deltas.push(options.deltas[i]);
 			}
 		}
+
+
 	},
 
 	//Is this rule able to be played given the start and end locations?
-	legal:function(start, end)
+	legal:function(start, end, piece, board)
 	{
+		var possibleLocations = this.locations(start, board);
+		if (_.contains(possibleLocations, "start") && piece.get("moveCount") <= this.maxMoves)
+		{
+			var startVec = coordToVector(start);
+			var endVec = coordToVector(end);
+			var coords = board.references({array:true});
+			var iter =(this.iterations < coords.length) ? this.iterations : coords.length ;
+		
+			function reverse(vec)
+			{
+				 vec.x = coords.length - 1;
+				 vec.y = coords[0].length - 1;
+				 return vec;
+			}
 
-	},
+			function onBoard(vec)
+			{
+				return (vec.x < coords.length && vec.y < coords[0].length) ? true :false;
 
-	//Execute the rule.
-	execute:function(start, end)
-	{
+			}
 
+			if (this.direction < 0)
+			{
+				startVec = reverse(startVec);
+				endVec = reverse(endVec);
+			}
+
+			//Is it possible to get to the end?
+			var canReach = false;
+			for (var t = 0, tt = this.deltas.length; (t < tt && !canReach); t++)
+			{
+				var testStart = _.clone(startVec);
+				for (var i = 0, ii = iter; i < ii; i++)
+				{
+					testStart.x += this.deltas[t].x;
+					testStart.y += this.deltas[t].y;
+					if (testStart.x == endVec.x && testStart.y == endVec.y)
+					{
+						canReach = true;
+						break;
+					}
+				}
+			}
+
+			if (canReach)
+			{
+				var endContents = board.lookUp(end);
+				var condition = "";
+				if (endContents == "NULL") 
+				{
+					condition = "Empty";
+				}
+				if (_.contains(this.condition.destinationRequirement, condition) || _.contains(this.condition.destinationRequirement, "Any"))
+				{
+					return true;
+				}
+			}
+
+		}
+		return false;
 	},
 
 	//Return an expanded list of locations
-	locations:function()
+	locations:function(baseCoordinates, board)
 	{
-
+		return this.makePositions(this.legalLocations, this.direction, baseCoordinates, board);
 	},
 
-	makePosition:function()
+	makePositions:function(coordinates, direction, baseCoordinates, board)
 	{
+		if (!_.isString(coordinates) || !_.isString(baseCoordinates))
+		{
+			return "NULL";
+		}
+		var gameBoard = board;
+		var coords = gameBoard.references({array:true});
+		if (direction < 0)
+		{
+			_.each(coords, function(coord){
+				coord.reverse();
+			});
+			coords.reverse();
+		}
 
+		function splitCoords(coords)
+		{
+			var firstHalf = "";
+			var secondHalf = "";
+
+			function eat(str, output)
+			{
+				switch(str.charAt(0))
+				{
+					case "+":
+					case "-":
+						output = str.substring(0, 2);
+						return str.substring(2);
+					break;
+					default:
+						output = str.charAt(0);
+						return str.substring(1);
+					break;
+				}
+			}
+
+			eat(coords, firstHalf);
+			eat(coords, secondHalf);
+			var ret = {
+				x:firstHalf,
+				y:secondHalf
+			}
+
+			return ret;
+		}
+
+		function interpretCoord(coord, alphaNumeric, listFunc)
+		{
+			var alpha = !!alphaNumeric;
+
+			var list = listFunc();
+			if (alpha)
+			{
+				list = _.map(list, function(item){
+					return alphaToNum(item);
+				});
+			}
+			switch (coord)
+			{
+				case "*":
+					return list;
+				break;
+				default:
+					var ret = [];
+					ret.push(parseInt(coord));
+					return ret;
+				break;
+			}
+		}
+		if (coordinates.charAt(0) == "*")
+		{
+			return _.flatten(coords);
+		}
+
+		var Coords = splitCoords(coordinates);
+		var fileCoord = interpretCoord(Coods.x, true, function(){return gameBoard.files();});
+		var rankCoord = interpretCoord(Coods.y, false, function(){return gameBoard.ranks();});
+
+
+
+		var ret = [];
+		switch (coordinates.charAt(0))
+		{
+			case "~":
+				var baseCoords = splitCoords(baseCoordinates);
+				var baseFile = baseCoords.x-1;
+				var baseRank = baseCoords.y-1;
+			break;
+			
+			case "+":
+				baseFile = 0;
+				baseRank = 0;
+			break;
+			
+			case "-":
+				baseFile = coords.length - 1;
+				baseRank = coords[0].length - 1;
+			break;
+
+			default:
+				baseFile = 0;
+				baseRank = 0;
+			break;
+		}
+		_.each(fileCoord, function(file){
+			_.each(rankCoord, function(rank){
+				var f = parseInt(file);
+				var r = parseInt(rank);
+				ret.push(coords[baseFile+f][baseRank+r]);
+			});
+		});
+
+		return ret;
 	}
+
 });
 
 
@@ -260,31 +621,36 @@ var MetaRule = function(options)
 {
 	this.configure(options);
 }
+
+var MetaRuleCondition = function(options)
+{
+	this.locations = options.locations || [];
+	this.destinationRequirements = options.requirements || [];
+	this.maxMoves = options.maxMoves || [];
+	if (!options.grouped)
+	{
+		_.each((options.groups || []), function(pair){
+			this.locations.push(pair.location || "*");
+			this.destinationRequirements.push(pair.requirement || "Any");
+			this.maxMoves.push(pair.maxMoves || Infinity)
+		}, this);
+	}
+}
+
+var MetaRuleMove = function(options)
+{
+	this.start = options.start || "NULL";
+	this.end = options.end || "NULL";
+}
+
+
+//MetaRules are made for very specific circumstances that involve "breaking" other rules.
 _.extend(MetaRule.prototype, _.extend({}, Rule.prototype, {
 	configure:function(options)
 	{
-		this.condition = {
-			
-			destinationRequirement:"Any",//"Empty", "Opponent", "Any", may use lists
-			maxMoves:Infinity, //How many moves maximum can the piece have taken?
-			legalLocations:["*"] //Where is this legal to move from?
-			//+01 indicates an addition of one space from the starting point in the y dimension
-		};
-		this.iterations = Infinity || options.iterations;//How many iterations?
-		this.deltas = [];//Changes in direction
- 		this.transform = false || options.transform;//Do you get to transform this piece at the end?
- 		this.direction = options.direction || 1;
-
-
-		_.extend(this.condition, _.pick(options, "destinationRequirement","maxMoves","legalLocations"));
-
-		if (options.deltas)
-		{
-			for (var i = 0, ii = options.deltas.length; i < ii; i ++)
-			{
-				this.deltas.push(options.deltas[i]);
-			}
-		}
+		this.conditions = options.conditions || [];
+		this.direction = options.direction || 1;
+		this.moves = options.moves || [];
 	}
 }));
 
@@ -293,6 +659,8 @@ var Pawn = Piece.extend(
 	initialize:function(options)
 	{
 		Piece.prototype.initialize.apply(this, arguments);
+
+		this.set("pieceName", "Pawn");
 
 		var rules = this.get("rules");
 		var direction = this.get("direction");
@@ -347,7 +715,8 @@ var Bishop = Piece.extend(
 	initialize:function()
 	{
 		Piece.prototype.initialize.apply(this, arguments);
-
+		this.set("pieceName", "Bishop");
+		
 		var rules = this.get("rules");
 
 		//Diagonals
@@ -366,6 +735,7 @@ var Rook = Piece.extend(
 	initialize:function()
 	{
 		Piece.prototype.initialize.apply(this, arguments);
+		this.set("pieceName", "Rook");
 
 		var rules = this.get("rules");
 
@@ -385,6 +755,7 @@ var Queen = Piece.extend(
 	initialize:function()
 	{
 		Piece.prototype.initialize.apply(this, arguments);
+		this.set("pieceName", "Queen");
 
 		var rules = this.get("rules");
 
@@ -408,6 +779,7 @@ var King = Piece.extend(
 	initialize:function()
 	{
 		Piece.prototype.initialize.apply(this, arguments);
+		this.set("pieceName", "King");
 
 		var rules = this.get("rules");
 
@@ -436,6 +808,106 @@ var King = Piece.extend(
 					new Position(-1, -1), 
 					new Position(1, -1)]
 		}));
+		var direction = this.get("direction");
+
+		//Castling
+		/*rules.push(new MetaRule({
+			grouped:true,
+			direction : this.direction,
+			groups:
+			[{
+				location:"~00",
+				requirement:"Friend, King",
+				maxMoves:0
+			},
+			{
+				location:"~01",
+				requirement:"Empty"
+			},
+			{
+				location:"~02",
+				requirement:"Empty"
+			},
+			{
+				location:"~03",
+				requirement:"Friend, Rook",
+				maxMoves:0
+			}],
+			moves:[
+			new MetaRuleCondition({
+				start:"~00",
+				end:"~03"}),
+			new MetaRuleCondition({
+				start:"~03",
+				end:"~00"})
+			]
+		}));
+		rules.push(new MetaRule({
+			grouped:true,
+			direction : this.direction,
+			groups:
+			[{
+				location:"~00",
+				requirement:"Friend, King",
+				maxMoves:0
+			},
+			{
+				location:"~0-1",
+				requirement:"Empty"
+			},
+			{
+				location:"~0-2",
+				requirement:"Empty"
+			},
+			{
+				location:"~0-3",
+				requirement:"Friend, Rook",
+				maxMoves:0
+			}],
+			moves:[
+			new MetaRuleCondition({
+				start:"~00",
+				end:"~0-3"}),
+			new MetaRuleCondition({
+				start:"~0-3",
+				end:"~00"})
+			]
+		}));
+		rules.push(new MetaRule({
+			grouped:true,
+			direction : this.direction,
+			groups:
+			[{
+				location:"~00",
+				requirement:"Friend, King",
+				maxMoves:0
+			},
+			{
+				location:"~0-1",
+				requirement:"Empty"
+			},
+			{
+				location:"~0-2",
+				requirement:"Empty"
+			},
+			{
+				location:"~0-3",
+				requirement:"Empty"
+			},
+			{
+				location:"~0-4",
+				requirement:"Friend, Rook",
+				maxMoves:0
+			}],
+			moves:[
+			new MetaRuleCondition({
+				start:"~00",
+				end:"~0-4"}),
+			new MetaRuleCondition({
+				start:"~0-4",
+				end:"~00"})
+			]
+		}));*/
 	}
 });
 
@@ -444,6 +916,7 @@ var Knight = Piece.extend(
 	initialize:function()
 	{
 		Piece.prototype.initialize.apply(this, arguments);
+		this.set("pieceName", "Knight");
 
 		var rules = this.get("rules");
 
@@ -465,6 +938,11 @@ var Knight = Piece.extend(
 
 
 
+
+
+
+
+
 var GameBox = SandboxApp.Sandbox.extend(
 {
 	initialize:function()
@@ -479,6 +957,7 @@ var GameBox = SandboxApp.Sandbox.extend(
 		},this);		
 	}
 }	);
+
 
 var gameBox = new GameBox();
 
@@ -498,11 +977,18 @@ var boardView = new Board_View({
 var game = new Game({
 	sandbox:gameBox
 });
+game.giveBoard(board);
+
+var gameView = new Game_View({
+	sandbox:gameBox,
+	collection:game,
+	boardView:boardView
+})
 
 $(document).ready(function(){
 
 boardView.render().$el.appendTo("#board1");
-
+gameView.render();
 
 
 

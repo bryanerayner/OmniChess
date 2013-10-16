@@ -44,12 +44,12 @@ background-color:#ccc;
 background-color:#666;
 }
 
-.rankLabel
-{
+.fileLabel{
 	width: 60px;
 	text-align: center;
 }
-.fileLabel{
+.rankLabel
+{
 height: 60px;
 padding-top:30px;
 }
