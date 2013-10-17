@@ -40,10 +40,21 @@
     this.initialize();
   };
 
-  _.extend(Sandbox.prototype, Backbone.Events, {
+  _.extend(Sandbox.prototype, Backbone.Model.prototype, Backbone.Events, {
     configure:function()
     {
+      var defaults;
+      var attrs = {};
+      var options = {};
+      this.cid = _.uniqueId('c');
       this.attributes = {};
+      
+      if (defaults = _.result(this, 'defaults')) {
+        attrs = _.defaults({}, attrs, defaults);
+      }
+      this.set(attrs, options);
+      this.changed = {};
+      this.initialize.apply(this, arguments);
     },
 
     initialize:function()

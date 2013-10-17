@@ -109,12 +109,8 @@ var Board = Backbone.Collection.extend({
 	//Return the piece that is at this location
 	lookUp:function(reference, options)
 	{
-		if (options.string == true)
-		{
-			return "stuff"
-		}
-
-		return "piece";
+		return this.game.lookUp(reference, options);
+		
 	},
 
 	reset:function(){
@@ -220,6 +216,9 @@ var Game = Backbone.Collection.extend(
 	{
 		this.sandbox = options.sandbox;
 		this.board = null;
+		this.listenTo(this.sandbox, "setupGame", this.setupGame);
+		this.listenTo(this, "setStart", this.setStart);
+		this.listenTo(this, "setEnd", this.setEnd);
 		this.listenTo(this.sandbox, "request:click", this.requestClick);
 	},
 
@@ -233,6 +232,8 @@ var Game = Backbone.Collection.extend(
 
 		function addPiece(piece)
 		{
+			piece.sandbox = t.sandbox;
+			piece.collection = t;
 			t.pieces.push(piece);
 		}
 		var side = "white";
@@ -290,6 +291,7 @@ var Game = Backbone.Collection.extend(
 			});
 		}
 
+
 		setupSide();
 		side = "black";
 		dir = 1;
@@ -302,7 +304,41 @@ var Game = Backbone.Collection.extend(
 
 		setupSide();	
 
+		this.sandbox.set("currentTurn", "white");
 		this.trigger("setupGame");
+	},
+
+	setStart:function(location)
+	{
+		this.sandbox.set("startLocation", location);
+
+	},
+
+	setEnd:function(location)
+	{
+
+	},
+
+	//Return the piece that is at this location
+	lookUp:function(reference, options)
+	{
+		var refPiece = _.find(this.pieces, function(piece){
+			return piece.get("location") == reference;
+		});
+
+		if (_.isObject(refPiece))
+		{		
+			if (options.string)
+			{
+				return refPiece.toString();
+			}
+			return refPiece;
+		}
+		else
+		{
+			return "NULL";
+		}
+
 	},
 
 	giveBoard:function(newBoard)
@@ -338,9 +374,11 @@ var Game_View = SandboxApp.NestedView.extend({
 				sandbox:this.sandbox,
 				parentView:this.boardView
 			});
-			pieceView.render();
+			pieceView.render("parent");
 			pieceView.locationUpdate();
 		}, this);
+
+		return this;
 	}
 
 
@@ -364,11 +402,23 @@ var Piece = Backbone.Model.extend({
 	{
 		this.sandbox = options.sandbox;
 		this.set("direction", options.direction || 1);
+	},
+	ownsTurn:function()
+	{
+		if (this.sandbox.get("currentTurn") == this.get("team"))
+		{
+			return true;
+		}
+		return false;
 	}
 });
 
 var Piece_View = SandboxApp.NestedView.extend({
 
+	events:
+	{
+		"click": "click_ev"
+	},
 	initialize:function(options)
 	{
 		SandboxApp.NestedView.prototype.initialize.apply(this, arguments);
@@ -380,7 +430,16 @@ var Piece_View = SandboxApp.NestedView.extend({
 	locationUpdate:function()
 	{
 		var location = this.model.get("location");
-		this.$el.appendTo(this.parentView.$(".Subview_"+location).find(".square"));
+		var $square = this.parentView.$(".Subview_"+location).find(".square");
+		this.$el.appendTo($square);
+	},
+
+	click_ev:function()
+	{
+		if (this.model.ownsTurn())
+		{
+			this.model.collection.trigger("setStart", this.model.get("location"));
+		}
 	}
 });
 
@@ -457,35 +516,64 @@ _.extend(Rule.prototype, {
 				endVec = reverse(endVec);
 			}
 
+			//Does a square meet the requirements of this?
+			function checkValid(location)
+			{
+				var endContents = board.lookUp(vectorToCoord(location.x, location.y));
+				var conditions = [];
+				conditions.push("Any");
+				if (endContents == "NULL") 
+				{
+					conditions.push("Empty");
+				}
+
+				if (endContents.get("team") == piece.get("team"))
+				{
+					conditions.push("Friend");
+				}else
+				{
+					conditions.push("Opponent");
+				}
+
+				conditions.push(endContents.get("pieceName"));
+
+				for (var i = 0, ii = conditions.length; i < ii; i++)
+				{
+					if (_.contains(this.conditions.destinationRequirement, conditions[i]))
+					{
+						return true;
+					}
+				}
+				return false;
+			}
 			//Is it possible to get to the end?
-			var canReach = false;
-			for (var t = 0, tt = this.deltas.length; (t < tt && !canReach); t++)
+			var canReach = true;
+			var validMove = false;
+			for (var t = 0, tt = this.deltas.length; (t < tt && canReach && !validMove); t++)
 			{
 				var testStart = _.clone(startVec);
 				for (var i = 0, ii = iter; i < ii; i++)
 				{
 					testStart.x += this.deltas[t].x;
 					testStart.y += this.deltas[t].y;
-					if (testStart.x == endVec.x && testStart.y == endVec.y)
+					if (checkValid(testStart))
 					{
-						canReach = true;
+						if (testStart.x == endVec.x && testStart.y == endVec.y)
+						{
+							validMove = true;
+						}
+					}
+					else
+					{
+						canReach = false;
 						break;
 					}
 				}
 			}
 
-			if (canReach)
+			if (validMove)
 			{
-				var endContents = board.lookUp(end);
-				var condition = "";
-				if (endContents == "NULL") 
-				{
-					condition = "Empty";
-				}
-				if (_.contains(this.condition.destinationRequirement, condition) || _.contains(this.condition.destinationRequirement, "Any"))
-				{
-					return true;
-				}
+				return true;
 			}
 
 		}
@@ -956,11 +1044,26 @@ var GameBox = SandboxApp.Sandbox.extend(
 			this.store(template, Handlebars.compile($("#"+template).html()));
 		},this);		
 	}
-}	);
+});
+
+var GameBox_View = SandboxApp.NestedView.extend(
+{
+	initialize:function(options)
+	{
+		SandboxApp.NestedView.prototype.initialize.apply(this,arguments);
+		var t = this;
+
+		$("#startBtn").on("click", function(){
+			t.sandbox.trigger("setupGame");
+		});
+
+	}
+});
 
 
 var gameBox = new GameBox();
 
+var gameBoxView;
 
 var board = new Board({
 	sandbox:gameBox,
@@ -985,11 +1088,19 @@ var gameView = new Game_View({
 	boardView:boardView
 })
 
+
+
 $(document).ready(function(){
 
-boardView.render().$el.appendTo("#board1");
-gameView.render();
+gameBoxView = new GameBox_View({
+	sandbox:gameBox
+});
 
+boardView.render().$el.appendTo("#board1");
+
+
+
+gameView.render();
 
 
 });
