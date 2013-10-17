@@ -3,6 +3,16 @@ body
 	font-family: 'Merriweather Sans', sans-serif;
 }
 
+.blurred
+{
+	filter:blur(4px);
+	-webkit-filter:blur(4px);
+	-moz-filter:blur(4px);
+	-ms-filter:blur(4px);
+	-o-filter:blur(4px);
+}
+
+
 *, *:before, *:after
 {
 	-webkit-box-sizing: border-box;
@@ -100,7 +110,7 @@ padding-top:30px;
 	@include pieces("black");
 }
 
-&::before, .before
+&::after, .after
 {
 	content:"";
 	display:block;
@@ -112,7 +122,7 @@ padding-top:30px;
 
 	transition: all 0.5s ease;
 }
-&.previewed::before, .previewed.before
+&.previewed::after, .previewed.after
 {
 	content:"";
 	background-color:rgba(0, 248, 0, 0.58);

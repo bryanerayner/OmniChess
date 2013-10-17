@@ -1131,9 +1131,21 @@ gameBoxView = new GameBox_View({
 
 boardView.render().$el.appendTo("#board1");
 
-
+//Support details elements.
+//Add class to html tag if details is supported/not.
+$('html').addClass($.fn.details.support ? 'details' : 'no-details');
+$('details').details();
 
 gameView.render();
 
+//Add blurred / not classes.
+$(".main").on("mouseenter",function(){
+	$(this).siblings().addClass("blurred");
+
+});
+$(".main").on("mouseleave",function(){
+	$(this).siblings().removeClass("blurred");
+	
+});
 
 });

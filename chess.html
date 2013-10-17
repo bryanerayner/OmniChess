@@ -6,8 +6,12 @@
          <meta name="viewport" content="width=device-width, initial-scale=1">
          <title>Chess</title>
          <link href='http://fonts.googleapis.com/css?family=Merriweather+Sans:400,700,300' rel='stylesheet' type='text/css'>
+		 <link rel="stylesheet" href="css/details-polyfill.css">
          <link rel="stylesheet" href="css/normalize.css">
+
          <link rel="stylesheet" href="css/style.css">
+
+
          <link rel="author" href="humans.txt">
      </head>
      <body>
@@ -92,9 +96,20 @@
 			</div>
 		</script>
 
-         
          <script src="libs/jquery-1.10.2.min.js"></script>
-         <script src="libs/jquery.details.min.js"></script>         
+
+         <!-- Enable details element -->
+         <script src="libs/polyfills/jquery.details.js"></script>
+
+		<!-- Enable CSS Filter support -->
+		<script type = "text/javascript">
+		window.polyfilter_scriptpath = "libs/polyfills/css-filters-polyfill/";
+		</script>
+		<script src="libs/polyfills/css-filters-polyfill/contentloaded.js"></script>
+		<script src="libs/polyfills/css-filters-polyfill/cssParser.js"></script>
+		<script src="libs/polyfills/css-filters-polyfill/css-filters-polyfill.js"></script>
+
+		<!-- Code to make the chess portion work. Coming back to this project for another few days might result in a working game. -->
          <script src="libs/underscore.js"></script>
          <script src="libs/backbone.js"></script>
          <script src="libs/handlebars.js"></script>         

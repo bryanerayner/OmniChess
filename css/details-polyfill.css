@@ -1,0 +1,50 @@
+/* line 2, ../sass/details-polyfill.scss */
+details, summary {
+  display: block;
+}
+
+/* Apply a pointer cursor and style the background upon hover to indicate <summary> is a clickable element. */
+/* These styles can be applied regardless of whether the fallback is needed */
+/* line 5, ../sass/details-polyfill.scss */
+summary {
+  cursor: pointer;
+}
+
+/* The following styles are not really needed, since the jQuery script takes care of hiding/displaying the elements. */
+/* However, we’re still gonna use CSS as well to prevent FOUC in browsers that understand these selectors. */
+/* Remember: by default (and probably most of the time), the contents of the <details> element are hidden. */
+/* line 10, ../sass/details-polyfill.scss */
+.no-details details > * {
+  display: none;
+}
+
+/* This doesn’t work very well in Firefox 3.6.x */
+/* .no-details details[open] > * { display: block; } */
+/* The following doesn’t toggle correctly in WebKit:
+.no-details details > summary:before { content: '► '; }
+.no-details details[open] > summary:before { content: '▼ '; }
+*/
+/* And yes, it should really be ::before, but that doesn’t work in IE8 */
+/* line 18, ../sass/details-polyfill.scss */
+.no-details details > summary:before {
+  float: left;
+  width: 20px;
+  content: '► ';
+}
+
+/* line 19, ../sass/details-polyfill.scss */
+.no-details details.open > summary:before {
+  content: '▼ ';
+}
+
+/* For IE6 and IE7, who don’t support generated content, you could use padding-left + a background image instead */
+/* I really couldn’t be bothered though. */
+/*
+.no-details details > summary { padding-left: 20px; background: url(img/arrow-sprite.png) no-repeat 0 0; }
+.no-details details.open > summary { background-position: 0 -20px; }
+*/
+/* Make sure summary remains visible */
+/* line 27, ../sass/details-polyfill.scss */
+.no-details details summary {
+  display: block;
+}

@@ -4,18 +4,27 @@ body {
 }
 
 /* line 7, ../sass/style.scss */
+.blurred {
+  filter: blur(4px);
+  -webkit-filter: blur(4px);
+  -moz-filter: blur(4px);
+  -ms-filter: blur(4px);
+  -o-filter: blur(4px);
+}
+
+/* line 17, ../sass/style.scss */
 *, *:before, *:after {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
-/* line 14, ../sass/style.scss */
+/* line 24, ../sass/style.scss */
 .file {
   float: left;
 }
 
-/* line 19, ../sass/style.scss */
+/* line 29, ../sass/style.scss */
 .file .square {
   float: left;
   width: 60px;
@@ -24,100 +33,100 @@ body {
   cursor: pointer;
 }
 
-/* line 29, ../sass/style.scss */
+/* line 39, ../sass/style.scss */
 .file [class*="Subview"] > div {
   background-color: inherit;
 }
 
-/* line 34, ../sass/style.scss */
+/* line 44, ../sass/style.scss */
 .file:nth-child(odd) [class*="Subview"]:nth-child(odd) {
   background-color: #666;
 }
 
-/* line 39, ../sass/style.scss */
+/* line 49, ../sass/style.scss */
 .file:nth-child(odd) [class*="Subview"]:nth-child(even) {
   background-color: #ccc;
 }
 
-/* line 44, ../sass/style.scss */
+/* line 54, ../sass/style.scss */
 .file:nth-child(even) [class*="Subview"]:nth-child(odd) {
   background-color: #ccc;
 }
 
-/* line 49, ../sass/style.scss */
+/* line 59, ../sass/style.scss */
 .file:nth-child(even) [class*="Subview"]:nth-child(even) {
   background-color: #666;
 }
 
-/* line 53, ../sass/style.scss */
+/* line 63, ../sass/style.scss */
 .fileLabel {
   width: 60px;
   text-align: center;
 }
 
-/* line 58, ../sass/style.scss */
+/* line 68, ../sass/style.scss */
 .rankLabel {
   height: 60px;
   padding-top: 30px;
 }
 
-/* line 91, ../sass/style.scss */
+/* line 101, ../sass/style.scss */
 .piece {
   width: 60px;
   height: 60px;
   position: relative;
   display: block;
 }
-/* line 66, ../sass/style.scss */
+/* line 76, ../sass/style.scss */
 .piece.white.Pawn {
   background-image: url("../images/whitePawn.png");
 }
-/* line 70, ../sass/style.scss */
+/* line 80, ../sass/style.scss */
 .piece.white.Bishop {
   background-image: url("../images/whiteBishop.png");
 }
-/* line 74, ../sass/style.scss */
+/* line 84, ../sass/style.scss */
 .piece.white.Knight {
   background-image: url("../images/whiteKnight.png");
 }
-/* line 78, ../sass/style.scss */
+/* line 88, ../sass/style.scss */
 .piece.white.Rook {
   background-image: url("../images/whiteRook.png");
 }
-/* line 82, ../sass/style.scss */
+/* line 92, ../sass/style.scss */
 .piece.white.Queen {
   background-image: url("../images/whiteQueen.png");
 }
-/* line 86, ../sass/style.scss */
+/* line 96, ../sass/style.scss */
 .piece.white.King {
   background-image: url("../images/whiteKing.png");
 }
-/* line 66, ../sass/style.scss */
+/* line 76, ../sass/style.scss */
 .piece.black.Pawn {
   background-image: url("../images/blackPawn.png");
 }
-/* line 70, ../sass/style.scss */
+/* line 80, ../sass/style.scss */
 .piece.black.Bishop {
   background-image: url("../images/blackBishop.png");
 }
-/* line 74, ../sass/style.scss */
+/* line 84, ../sass/style.scss */
 .piece.black.Knight {
   background-image: url("../images/blackKnight.png");
 }
-/* line 78, ../sass/style.scss */
+/* line 88, ../sass/style.scss */
 .piece.black.Rook {
   background-image: url("../images/blackRook.png");
 }
-/* line 82, ../sass/style.scss */
+/* line 92, ../sass/style.scss */
 .piece.black.Queen {
   background-image: url("../images/blackQueen.png");
 }
-/* line 86, ../sass/style.scss */
+/* line 96, ../sass/style.scss */
 .piece.black.King {
   background-image: url("../images/blackKing.png");
 }
-/* line 104, ../sass/style.scss */
-.piece::before, .piece .before {
+/* line 114, ../sass/style.scss */
+.piece::after, .piece .after {
   content: "";
   display: block;
   width: 0px;
@@ -127,8 +136,8 @@ body {
   position: absolute;
   transition: all 0.5s ease;
 }
-/* line 116, ../sass/style.scss */
-.piece.previewed::before, .piece .previewed.before {
+/* line 126, ../sass/style.scss */
+.piece.previewed::after, .piece .previewed.after {
   content: "";
   background-color: rgba(0, 248, 0, 0.58);
   display: block;
@@ -138,44 +147,44 @@ body {
   left: 0px;
 }
 
-/* line 133, ../sass/style.scss */
+/* line 143, ../sass/style.scss */
 details {
   border: 1px solid black;
 }
-/* line 136, ../sass/style.scss */
+/* line 146, ../sass/style.scss */
 details summary {
   pointer: cursor;
   border-bottom: 1px solid black;
 }
-/* line 139, ../sass/style.scss */
+/* line 149, ../sass/style.scss */
 details summary .piece {
   float: right;
 }
-/* line 143, ../sass/style.scss */
+/* line 153, ../sass/style.scss */
 details summary p {
   margin-left: 20px;
 }
-/* line 148, ../sass/style.scss */
+/* line 158, ../sass/style.scss */
 details p {
   margin-bottom: 0;
   padding-bottom: 1em;
   padding: 0 12% 10%;
 }
 
-/* line 158, ../sass/style.scss */
+/* line 168, ../sass/style.scss */
 .main {
   width: 64%;
   float: left;
 }
-/* line 163, ../sass/style.scss */
+/* line 173, ../sass/style.scss */
 .main #startBtn, .main #board1 {
   margin: 30px auto;
 }
-/* line 168, ../sass/style.scss */
+/* line 178, ../sass/style.scss */
 .main #board1 {
   width: 500px;
 }
-/* line 173, ../sass/style.scss */
+/* line 183, ../sass/style.scss */
 .main #startBtn {
   background-color: #00f800;
   padding: .23em .5em;
@@ -185,18 +194,18 @@ details p {
   border-bottom: 1px solid transparent;
   border-right: 1px solid transparent;
 }
-/* line 179, ../sass/style.scss */
+/* line 189, ../sass/style.scss */
 .main #startBtn p {
   font-size: 1.3em;
   font-weight: bold;
   margin: 0 auto;
 }
-/* line 190, ../sass/style.scss */
+/* line 200, ../sass/style.scss */
 .main #startBtn:hover {
   border-bottom: 1px solid black;
   border-right: 1px solid black;
 }
-/* line 195, ../sass/style.scss */
+/* line 205, ../sass/style.scss */
 .main #startBtn:active {
   border-top: 1px solid black;
   border-bottom: 0px solid black;
@@ -204,14 +213,14 @@ details p {
   border-right: 0px solid black;
 }
 
-/* line 205, ../sass/style.scss */
+/* line 215, ../sass/style.scss */
 .sidebar {
   width: 32%;
   float: right;
   padding-right: 5em;
 }
 
-/* line 212, ../sass/style.scss */
+/* line 222, ../sass/style.scss */
 h1 {
   margin-left: 15%;
   font-size: 3em;
