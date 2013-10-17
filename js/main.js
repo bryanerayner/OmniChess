@@ -190,7 +190,7 @@ var Board_View = SandboxApp.NestedView.extend({
 	{
 		var files = this.collection.files();
 		files = _.map(files, function(file){
-			var ranks = this.collection.ranks();
+			var ranks = this.collection.ranks().reverse();
 			var newRanks = [];
 			_.each(ranks, function(rank){
 				newRanks.push({
@@ -224,17 +224,14 @@ var Game = Backbone.Collection.extend(
 
 	setupGame:function()
 	{
-		this.sandbox.trigger("killPieces");
+		this.sandbox.trigger("removePieces");
 
-		delete this.pieces;
-		this.pieces = [];
+		
 		var t = this;
 
 		function addPiece(piece)
 		{
-			piece.sandbox = t.sandbox;
-			piece.collection = t;
-			t.pieces.push(piece);
+			t.add(piece);
 		}
 		var side = "white";
 		var dir = -1;
@@ -249,6 +246,8 @@ var Game = Backbone.Collection.extend(
 		{
 			_.each(pawnLocations, function(location){
 				addPiece(new Pawn({
+					sandbox: t.sandbox,
+					collection: t,
 					location:location,
 					team:side,
 					direction:dir
@@ -256,6 +255,8 @@ var Game = Backbone.Collection.extend(
 			});
 			_.each(bishopLocations, function(location){
 				addPiece(new Bishop({
+					sandbox: t.sandbox,
+					collection: t,
 					location:location,
 					team:side,
 					direction:dir
@@ -263,6 +264,8 @@ var Game = Backbone.Collection.extend(
 			});
 			_.each(knightLocations, function(location){
 				addPiece(new Knight({
+					sandbox: t.sandbox,
+					collection: t,
 					location:location,
 					team:side,
 					direction:dir
@@ -270,6 +273,8 @@ var Game = Backbone.Collection.extend(
 			});
 			_.each(rookLocations, function(location){
 				addPiece(new Rook({
+					sandbox: t.sandbox,
+					collection: t,
 					location:location,
 					team:side,
 					direction:dir
@@ -277,6 +282,8 @@ var Game = Backbone.Collection.extend(
 			});
 			_.each(queenLocations, function(location){
 				addPiece(new Queen({
+					sandbox: t.sandbox,
+					collection: t,
 					location:location,
 					team:side,
 					direction:dir
@@ -284,6 +291,8 @@ var Game = Backbone.Collection.extend(
 			});
 			_.each(kingLocations, function(location){
 				addPiece(new King({
+					sandbox: t.sandbox,
+					collection: t,
 					location:location,
 					team:side,
 					direction:dir
@@ -319,10 +328,17 @@ var Game = Backbone.Collection.extend(
 
 	},
 
+	getPieces:function()
+	{
+		return this.filter(function(model){
+			return (_.isString(model.get("pieceName")));
+		});
+	},
+
 	//Return the piece that is at this location
 	lookUp:function(reference, options)
 	{
-		var refPiece = _.find(this.pieces, function(piece){
+		var refPiece = _.find(this.getPieces(), function(piece){
 			return piece.get("location") == reference;
 		});
 
@@ -348,7 +364,7 @@ var Game = Backbone.Collection.extend(
 
 	requestClick:function(reference)
 	{
-		alert(reference);
+		
 	}
 });
 
@@ -365,7 +381,7 @@ var Game_View = SandboxApp.NestedView.extend({
 	render:function(){
 		SandboxApp.NestedView.prototype.render.apply(this, arguments);
 
-		var pieces = this.collection.pieces;
+		var pieces = this.collection.getPieces();
 
 		_.each(pieces, function(piece){
 			var pieceView = new Piece_View(
@@ -401,8 +417,12 @@ var Piece = Backbone.Model.extend({
 	initialize:function(options)
 	{
 		this.sandbox = options.sandbox;
+
 		this.set("direction", options.direction || 1);
+
+		this.listenTo(this.sandbox, "removePieces", this.destroy);
 	},
+
 	ownsTurn:function()
 	{
 		if (this.sandbox.get("currentTurn") == this.get("team"))
@@ -417,7 +437,9 @@ var Piece_View = SandboxApp.NestedView.extend({
 
 	events:
 	{
-		"click": "click_ev"
+		"click": "click_ev",
+		"mouseenter":"mouseenter_ev",
+		"mouseleave":"mouseleave_ev"
 	},
 	initialize:function(options)
 	{
@@ -425,6 +447,7 @@ var Piece_View = SandboxApp.NestedView.extend({
 		this.template = "template_piece";
 
 		this.listenTo(this.model, "change:location", this.locationUpdate);
+		this.listenTo(this.model, "destroy", this.remove);
 	},
 
 	locationUpdate:function()
@@ -440,6 +463,16 @@ var Piece_View = SandboxApp.NestedView.extend({
 		{
 			this.model.collection.trigger("setStart", this.model.get("location"));
 		}
+		this.$el.find(".piece").addClass("animate");
+	},
+
+	mouseenter_ev:function()
+	{
+		this.$el.find(".piece").addClass("previewed");
+	},
+	mouseleave_ev:function()
+	{
+		this.$el.find(".piece").removeClass("previewed");
 	}
 });
 

@@ -5,25 +5,64 @@
          <meta name="description" content="">
          <meta name="viewport" content="width=device-width, initial-scale=1">
          <title>Chess</title>
+         <link href='http://fonts.googleapis.com/css?family=Merriweather+Sans:400,700,300' rel='stylesheet' type='text/css'>
+         <link rel="stylesheet" href="css/normalize.css">
          <link rel="stylesheet" href="css/style.css">
          <link rel="author" href="humans.txt">
      </head>
      <body>
          
+
+         <h1>Chess!</h1>
+
 		<div class="main">
-
-			<div id = "board1">
-				
-
-			</div>
-
 			<div id = "startBtn">
 				<p>Setup Game</p>
 			</div>
 
+			<div id = "board1"></div>
+
+
 		</div>
 
+		<div class = "sidebar">
+			<p>Welcome to Chess! In a few weeks you might be able to even play this classic game in the browser! Until then, just look at this cross browser implementation of the details element. Enjoy!</p>
 
+
+			<h2>Piece Movement</h2>
+
+			<details>
+				<summary role="button" aria-expanded="false"><div class = "piece white Pawn">
+			</div><p>Pawn</p></summary>
+				<p>Pawns can be moved forward one square at a time, and capture only on the upwards diagonal.</p>
+			</details>
+			<details>
+				<summary role="button" aria-expanded="false"><div class = "piece white Bishop">
+			</div><p>Bishop</p></summary>
+				<p>Bishops can be moved on diagonal lines.</p>
+			</details>
+			<details>
+				<summary role="button" aria-expanded="false"><div class = "piece white Knight">
+			</div><p>Knight</p></summary>
+				<p>Knights can be moved in an "L" shape - Two in one direction, and one in a perpendicular direction.</p>
+			</details>
+			<details>
+				<summary role="button" aria-expanded="false"><div class = "piece white Rook">
+			</div><p>Rook</p></summary>
+				<p>Rooks can be moved horizontally &amp; vertically.</p>
+			</details>
+			<details>
+				<summary role="button" aria-expanded="false"><div class = "piece white Queen">
+			</div><p>Queen</p></summary>
+				<p>Queens can be moved on diagonal lines as well as horizontal &amp; vertical.</p>
+			</details>
+			<details>
+				<summary role="button" aria-expanded="false"><div class = "piece white King">
+			</div><p>King</p></summary>
+				<p>Kings can be moved in all directions, but only one space at a time.</p>
+			</details>
+
+		</div>
 
 
 		<script id = "template_board" type = "text/x-handlebars-template">
@@ -50,12 +89,12 @@
 
 		<script id = "template_piece" type = "text/x-handlebars-template">
 			<div class = "piece {{team}} {{pieceName}}">
-				<p>{{team}} {{pieceName}}</p>
 			</div>
 		</script>
 
          
-         <script src="libs/jquery-1.10.2.min.js"></script>         
+         <script src="libs/jquery-1.10.2.min.js"></script>
+         <script src="libs/jquery.details.min.js"></script>         
          <script src="libs/underscore.js"></script>
          <script src="libs/backbone.js"></script>
          <script src="libs/handlebars.js"></script>         
